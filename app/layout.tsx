@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google"; // Switched to Inter
+import { Inter } from "next/font/google";
 import "./globals.css";
 import { Navbar } from "@/components/navbar/Navbar";
 import { Footer } from "@/components/footer/Footer";
+import { Toaster } from "@/components/ui/sonner";
 
-// Configuring Inter with both Latin and Bengali support
+
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-inter",
@@ -30,6 +31,7 @@ export default function RootLayout({
         <Navbar />
         <main className="grow flex flex-col items-center justify-center py-12 px-4">
           {children}
+          <Toaster richColors position="top-center" />
         </main>
         <Footer />
       </body>
