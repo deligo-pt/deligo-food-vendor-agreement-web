@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import React from "react";
@@ -11,17 +12,41 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { Mail, Lock, EyeOff, HelpCircle, ShieldCheck, ArrowRight } from "lucide-react";
+import { Mail, Lock, EyeOff, ShieldCheck, ArrowRight } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { loginService } from "@/services/auth.service";
+import { toast } from "sonner";
+import { getDeviceInfo } from "@/utils/getDeviceInfo";
+import { TLoginPayload } from "@/types/login.type";
 
 
 export default function LoginForm() {
+    const router = useRouter();
+    const deviceInfo = getDeviceInfo();
     const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<LoginInput>({
         resolver: zodResolver(LoginSchema),
     });
 
     const onSubmit = async (data: LoginInput) => {
-        // await loginAction(data);
-        console.log("Form submitted with data:", data);
+        const toastId = toast.loading("Authenticating...");
+
+        const deviceDetails = await deviceInfo;
+        const payload = {
+            ...data,
+            ...deviceDetails
+        };
+        console.log(payload);
+        try {
+            const res = await loginService(payload as TLoginPayload);
+            console.log("Login Response in Component:", res);
+            if (res?.success) {
+                toast.success(res?.message, { id: toastId });
+                router.push("/agreement-form");
+            };
+        } catch (err: any) {
+            console.log(err);
+            toast.error(err?.message || "Login failed. Please try again.", { id: toastId });
+        }
     };
 
     return (
