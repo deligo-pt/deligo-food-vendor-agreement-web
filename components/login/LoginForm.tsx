@@ -1,12 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
-import React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { LoginInput, LoginSchema } from "@/lib/schema/login.schema";
-// import { loginAction } from "./actions";
-
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -33,12 +30,12 @@ export default function LoginForm() {
         const deviceDetails = await deviceInfo;
         const payload = {
             ...data,
-            ...deviceDetails
+            deviceDetails
         };
-        console.log(payload);
+
         try {
             const res = await loginService(payload as TLoginPayload);
-            console.log("Login Response in Component:", res);
+
             if (res?.success) {
                 toast.success(res?.message, { id: toastId });
                 router.push("/agreement-form");

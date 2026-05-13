@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import React from "react";
@@ -10,18 +11,34 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { ArrowRight } from "lucide-react";
 import { AgreementSchema, AgreementSchemaInput } from "@/lib/schema/agreement.schema";
+import { toast } from "sonner";
+import { initiateAgreementAction } from "@/services/agreement.service";
+import { useRouter } from "next/navigation";
 
 export default function AgreementForm() {
+    const router = useRouter();
     const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<AgreementSchemaInput>({
         resolver: zodResolver(AgreementSchema),
     });
 
     const onSubmit = async (data: AgreementSchemaInput) => {
-        console.log("Form submitted with data:", data);
-        // const result = await submitStep1Action(data);
-        // if (result.success) {
-        //     alert("Step 1 complete! Moving to Step 2...");
-        // }
+        const toastId = toast.loading("Initiating agreement...");
+
+        try {
+            const res = await initiateAgreementAction(data);
+            if (res?.success) {
+                toast.success(res?.message || "Agreement initiated successfully!", { id: toastId });
+                router.push("/verify-otp");
+            };
+
+            if (res?.error) {
+                toast.error(res?.error, { id: toastId });
+                return;
+            };
+        } catch (err: any) {
+            console.log(err);
+            toast.error(err?.message || "Agreement failed. Please try again.", { id: toastId });
+        }
     };
 
     return (
@@ -38,11 +55,11 @@ export default function AgreementForm() {
                         <div className="space-y-2">
                             <Label className="text-[#DC3173] text-xs font-bold uppercase tracking-wider">Legal Name / Business Name</Label>
                             <Input
-                                {...register("businessName")}
+                                {...register("establishmentName")}
                                 placeholder="Enter legal business name"
                                 className="bg-slate-50 border-slate-200 h-12 focus-visible:ring-[#DC3173]"
                             />
-                            {errors.businessName && <p className="text-red-500 text-xs italic">{errors.businessName.message}</p>}
+                            {errors.establishmentName && <p className="text-red-500 text-xs italic">{errors.establishmentName.message}</p>}
                         </div>
 
                         {/* Email Address */}
@@ -61,20 +78,20 @@ export default function AgreementForm() {
                             <div className="space-y-2">
                                 <Label className="text-[#DC3173] text-xs font-bold uppercase tracking-wider">Phone Number</Label>
                                 <Input
-                                    {...register("phoneNumber")}
+                                    {...register("contactNumber")}
                                     placeholder="+1 (555) 000-0000"
                                     className="bg-slate-50 border-slate-200 h-12 focus-visible:ring-[#DC3173]"
                                 />
-                                {errors.phoneNumber && <p className="text-red-500 text-xs italic">{errors.phoneNumber.message}</p>}
+                                {errors.contactNumber && <p className="text-red-500 text-xs italic">{errors.contactNumber.message}</p>}
                             </div>
                             <div className="space-y-2">
                                 <Label className="text-[#DC3173] text-xs font-bold uppercase tracking-wider">Tax ID / NIF</Label>
                                 <Input
-                                    {...register("taxId")}
+                                    {...register("nif")}
                                     placeholder="987654321"
                                     className="bg-slate-50 border-slate-200 h-12 focus-visible:ring-[#DC3173]"
                                 />
-                                {errors.taxId && <p className="text-red-500 text-xs italic">{errors.taxId.message}</p>}
+                                {errors.nif && <p className="text-red-500 text-xs italic">{errors.nif.message}</p>}
                             </div>
                         </div>
 

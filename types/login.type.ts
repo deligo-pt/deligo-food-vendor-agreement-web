@@ -10,4 +10,6 @@ export type TDeviceInfo = {
     userAgent: string;
 }
 
-export type TLoginPayload = LoginInput & TDeviceInfo;
+export type TLoginPayload = LoginInput & {
+    deviceDetails: TDeviceInfo;
+}

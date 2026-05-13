@@ -17,7 +17,7 @@ export const loginService = async (credentials: TLoginPayload) => {
         });
 
         const result = await response.json();
-        console.log("Login Service Response:", result);
+
         if (!response.ok) {
             throw new Error(result.message || "Something went wrong during login");
         };
