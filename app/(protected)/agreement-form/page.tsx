@@ -2,7 +2,7 @@ import AgreementForm from '@/components/agreement/AgreementForm';
 import { Progress } from '@/components/ui/progress';
 import React from 'react';
 
-const AgreementPage = () => {
+const AgreementFormPage = () => {
     return (
         <div className='max-w-4xl mx-auto w-full'>
             <div className="space-y-4">
@@ -19,4 +19,4 @@ const AgreementPage = () => {
     );
 };
 
-export default AgreementPage;
+export default AgreementFormPage;
