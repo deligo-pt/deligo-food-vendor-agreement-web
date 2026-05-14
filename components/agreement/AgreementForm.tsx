@@ -28,7 +28,7 @@ export default function AgreementForm() {
             const res = await initiateAgreementAction(data);
             if (res?.success) {
                 toast.success(res?.message || "Agreement initiated successfully!", { id: toastId });
-                router.push("/verify-otp");
+                router.push(`/verify-otp?email=${encodeURIComponent(data.email)}`);
             };
 
             if (res?.error) {

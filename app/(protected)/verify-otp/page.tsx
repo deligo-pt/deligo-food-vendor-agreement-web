@@ -1,8 +1,12 @@
 import { Progress } from '@/components/ui/progress';
 import VerifyOtp from '@/components/verify-otp/VerifyOtp';
 
+interface IProps {
+    searchParams: Promise<{ email: string }>;
+}
 
-const VerifyOtpPage = () => {
+const VerifyOtpPage = async ({ searchParams }: IProps) => {
+    
     return (
         <div className='max-w-4xl mx-auto w-full'>
             <div className="space-y-4">
@@ -14,7 +18,7 @@ const VerifyOtpPage = () => {
                 </div>
                 <Progress value={66} className="h-2 bg-gray-100" />
             </div>
-            <VerifyOtp />
+            <VerifyOtp email={(await searchParams).email || ""} />
         </div>
     );
 };
