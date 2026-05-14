@@ -32,4 +32,21 @@ export async function initiateAgreementAction(data: AgreementSchemaInput) {
         console.error("Initiate Agreement Error:", error);
         return { error: "A network error occurred. Please try again." };
     }
-}
+};
+
+export const getSingleAgreement = async (agreementId: string) => {
+    try {
+        const response = await serverFetch.get(`/agreements/${agreementId}`);
+
+        const result = await response.json();
+
+        if (!response.ok) {
+            throw new Error(result?.message || "Failed to fetch agreement details");
+        }
+
+        return result?.data;
+    } catch (error) {
+        console.error("Get Single Agreement Error:", error);
+        throw error;
+    }
+};

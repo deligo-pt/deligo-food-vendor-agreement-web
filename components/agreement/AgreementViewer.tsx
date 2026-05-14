@@ -10,6 +10,7 @@ interface AgreementViewerProps {
 }
 
 export default function AgreementViewer({ pdfUrl }: AgreementViewerProps) {
+    console.log("PDF URL:", pdfUrl); // Debug log to check the URL being passed
     const handleSubmit = async () => {
         // Call your Server Action here to finalize the Deligo agreement
         console.log("Agreement Submitted");
@@ -20,7 +21,7 @@ export default function AgreementViewer({ pdfUrl }: AgreementViewerProps) {
             <div className="grow relative">
                 {/* Displaying PDF from Backend */}
                 <iframe
-                    src={`${pdfUrl}#toolbar=0&navpanes=0`}
+                    src={`${pdfUrl}`}
                     className="w-full h-full min-h-175 border-none"
                     title="Agreement PDF"
                 />

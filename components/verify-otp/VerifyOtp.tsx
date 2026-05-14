@@ -82,7 +82,7 @@ export default function VerifyOtp({ email }: { email: string }) {
 
             if (res?.success) {
                 toast.success(res?.message, { id: toastId });
-                router.push(`/agreement/agreement-id=${encodeURIComponent(res?.data?.agreementId)}`);
+                router.push(`/agreement?agreementId=${encodeURIComponent(res?.data?.agreementId)}`);
             } else {
                 toast.error(res?.error || "Verification failed. Please try again.", { id: toastId });
             }

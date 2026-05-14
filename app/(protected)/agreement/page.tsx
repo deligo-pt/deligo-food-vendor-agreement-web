@@ -1,10 +1,18 @@
 import AgreementViewer from '@/components/agreement/AgreementViewer';
 import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
+import { getSingleAgreement } from '@/services/agreement.service';
 import { Calendar, FileText, ShieldCheck } from 'lucide-react';
 
+interface IProps {
+    searchParams: Promise<{ agreementId: string }>;
+}
 
-const AgreementViewerPage = () => {
+
+const AgreementViewerPage = async ({ searchParams }: IProps) => {
+    const agreementId = (await searchParams).agreementId || "";
+    const { data } = await getSingleAgreement(agreementId);
+
     return (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 w-full max-w-7xl mx-auto p-4">
             {/* Left Sidebar: Overview */}
@@ -54,7 +62,7 @@ const AgreementViewerPage = () => {
                 </div>
 
                 {/* PDF Display Area */}
-                <AgreementViewer pdfUrl='' />
+                <AgreementViewer pdfUrl={data?.draftPdfPath || ''} />
             </div>
         </div>
     );
