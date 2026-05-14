@@ -1,8 +1,10 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use server";
 
 
 import { AgreementSchema, AgreementSchemaInput } from "@/lib/schema/agreement.schema";
 import { serverFetch } from "@/lib/serverFetch";
+import { revalidateTag } from "next/cache";
 
 export async function initiateAgreementAction(data: AgreementSchemaInput) {
     const validatedFields = AgreementSchema.safeParse(data);
@@ -36,7 +38,12 @@ export async function initiateAgreementAction(data: AgreementSchemaInput) {
 
 export const getSingleAgreement = async (agreementId: string) => {
     try {
-        const response = await serverFetch.get(`/agreements/${agreementId}`);
+        const response = await serverFetch.get(`/agreements/${agreementId}`, {
+            next: {
+                tags: ["agreement", `agreement-${agreementId}`],
+                revalidate: 10
+            }
+        });
 
         const result = await response.json();
 
@@ -47,6 +54,35 @@ export const getSingleAgreement = async (agreementId: string) => {
         return result?.data;
     } catch (error) {
         console.error("Get Single Agreement Error:", error);
+        throw error;
+    }
+};
+
+export const signAgreementReq = async (agreementId: string, signatureImage: string) => {
+    try {
+        const response = await serverFetch.post(`/agreements/sign/${agreementId}`, {
+            body: JSON.stringify({
+                signatureImage,
+            }),
+            headers: {
+                "Content-Type": "application/json",
+            },
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(data.message || "Failed to sign agreement");
+        };
+
+        if (data?.success) {
+            revalidateTag(`agreement-${agreementId}`, {});
+            revalidateTag("agreement", {});
+        }
+
+        return data;
+    } catch (error: any) {
+        console.error("Signature API Error:", error.message);
         throw error;
     }
 };

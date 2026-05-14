@@ -62,7 +62,7 @@ const AgreementViewerPage = async ({ searchParams }: IProps) => {
                 </div>
 
                 {/* PDF Display Area */}
-                <AgreementViewer pdfUrl={data?.draftPdfPath || ''} />
+                <AgreementViewer agreement={data} />
             </div>
         </div>
     );
