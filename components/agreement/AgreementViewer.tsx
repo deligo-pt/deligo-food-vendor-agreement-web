@@ -8,12 +8,14 @@ import { CheckCircle2 } from "lucide-react";
 import SignatureCanvas from "react-signature-canvas";
 import { signAgreementReq } from "@/services/agreement.service";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
 interface AgreementViewerProps {
     agreement: any;
 }
 
 export default function AgreementViewer({ agreement }: AgreementViewerProps) {
+    const router = useRouter();
     const sigRef = useRef<SignatureCanvas | null>(null);
     const [isEmpty, setIsEmpty] = useState(true);
     const [pdfUrl, setPdfUrl] = useState(agreement?.signedPdfPath ? agreement?.signedPdfPath : agreement?.draftPdfPath || '');
@@ -59,6 +61,12 @@ export default function AgreementViewer({ agreement }: AgreementViewerProps) {
         };
     };
 
+    const handleContinue = () => {
+        setTimeout(() => {
+            router.push("/success");
+        }, 2000);
+    }
+
     return (
         <Card className="overflow-hidden border-none shadow-inner bg-slate-200 min-h-175 flex flex-col">
 
@@ -75,7 +83,7 @@ export default function AgreementViewer({ agreement }: AgreementViewerProps) {
             {agreement?.signedPdfPath ? (
                 <div className="bg-slate-100 flex flex-col items-center gap-4 p-4">
                     <Button
-                        onClick={handleSubmit}
+                        onClick={handleContinue}
                         className="bg-[#DC3173] hover:bg-[#c22b65] text-white px-12 py-7 text-md font-bold rounded-lg shadow-lg flex items-center gap-2 transition-transform active:scale-95"
                     >
                         <CheckCircle2 className="w-5 h-5" />
