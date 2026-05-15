@@ -18,8 +18,11 @@ export default function AgreementViewer({ agreement }: AgreementViewerProps) {
     const router = useRouter();
     const sigRef = useRef<SignatureCanvas | null>(null);
     const [isEmpty, setIsEmpty] = useState(true);
-    const [pdfUrl, setPdfUrl] = useState(agreement?.signedPdfPath ? agreement?.signedPdfPath : agreement?.draftPdfPath || '');
+    const [signedPdfUrl, setSignedPdfUrl] = useState<string | null>(
+        agreement?.signedPdfPath || null
+    );
 
+    const pdfUrl = signedPdfUrl || agreement?.signedPdfPath || agreement?.draftPdfPath || "";
 
     const handleClear = () => {
         sigRef.current?.clear();
@@ -51,7 +54,7 @@ export default function AgreementViewer({ agreement }: AgreementViewerProps) {
 
             if (res?.success) {
                 toast.success(res?.message || "Agreement signed successfully!", { id: toastId });
-                setPdfUrl(agreement?.signedPdfPath);
+                setSignedPdfUrl(res?.data?.signedPdfPath);
             } else {
                 toast.error(res?.error || "Failed to sign the agreement. Please try again.", { id: toastId });
             };
@@ -87,7 +90,7 @@ export default function AgreementViewer({ agreement }: AgreementViewerProps) {
                         className="bg-[#DC3173] hover:bg-[#c22b65] text-white px-12 py-7 text-md font-bold rounded-lg shadow-lg flex items-center gap-2 transition-transform active:scale-95"
                     >
                         <CheckCircle2 className="w-5 h-5" />
-                        Complete
+                        Completed - Continue
                     </Button>
                 </div>
             ) : (
