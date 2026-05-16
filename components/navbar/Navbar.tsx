@@ -7,9 +7,12 @@ import { toast } from "sonner";
 import Cookies from 'js-cookie';
 import { useRouter } from "next/navigation";
 import { logoutService } from "@/services/auth.service";
+import { useStore } from "@/store/store";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 
 export function Navbar() {
     const router = useRouter();
+    const { lang, setLang } = useStore();
 
     const logOut = async () => {
         const toastId = toast.loading("Logging out...");
@@ -65,6 +68,22 @@ export function Navbar() {
 
                 {/* Action Icons */}
                 <div className="flex items-center gap-4">
+
+                    {/* Language & Dark Mode */}
+                    <Select
+                        value={lang}
+                        onValueChange={(value: "en" | "pt") => {
+                            setLang(value);
+                        }}
+                    >
+                        <SelectTrigger className="w-17.5 hover:border hover:border-[#DC3173]">
+                            <SelectValue placeholder="Language" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="en">EN</SelectItem>
+                            <SelectItem value="pt">PT</SelectItem>
+                        </SelectContent>
+                    </Select>
                     {/* Logout Button */}
                     <Button
                         onClick={logOut}
