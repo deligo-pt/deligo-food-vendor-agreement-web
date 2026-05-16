@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import { Navbar } from "@/components/navbar/Navbar";
-import { Footer } from "@/components/footer/Footer";
 import { Toaster } from "@/components/ui/sonner";
 
 
@@ -28,12 +26,8 @@ export default function RootLayout({
       className={`${inter.variable} h-full antialiased`}
     >
       <body className={`${inter.className} min-h-screen flex flex-col`}>
-        <Navbar />
-        <main className="grow flex flex-col items-center justify-center py-12 px-4">
-          {children}
-          <Toaster richColors position="top-center" />
-        </main>
-        <Footer />
+        {children}
+        <Toaster richColors position="top-center" />
       </body>
     </html>
   );
