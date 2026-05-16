@@ -48,7 +48,7 @@ export default function LoginForm() {
     };
 
     return (
-        <div className="min-h-screen flex flex-col bg-[#F9FAFB]">
+        <div className="min-h-screen flex flex-col items-center justify-center bg-linear-to-b from-[#DC3173]/10 to-[#DC3173]/30">
             <main className="grow flex flex-col items-center justify-center p-6">
                 <Card className="w-full max-w-105 shadow-2xl border-none overflow-hidden">
                     <CardHeader className="bg-[#DC3173] text-white text-center py-10 space-y-1">
