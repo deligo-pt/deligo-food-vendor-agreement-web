@@ -1,31 +1,55 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
-
-import React from "react";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { PhoneInput } from "react-international-phone";
 
-import { Button } from "@/components/ui/button";
+import {
+    Form,
+    FormField,
+    FormItem,
+    FormLabel,
+    FormControl,
+    FormMessage,
+} from "@/components/ui/form";
+
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
-import { ArrowRight } from "lucide-react";
 import { AgreementSchema, AgreementSchemaInput } from "@/lib/schema/agreement.schema";
 import { toast } from "sonner";
-import { initiateAgreementAction } from "@/services/agreement.service";
+import { IInputAgreementProps, initiateAgreementAction } from "@/services/agreement.service";
 import { useRouter } from "next/navigation";
 
 export default function AgreementForm() {
     const router = useRouter();
-    const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<AgreementSchemaInput>({
+    const form = useForm<AgreementSchemaInput>({
         resolver: zodResolver(AgreementSchema),
+        mode: "onChange",
+        defaultValues: {
+            establishmentName: "",
+            email: "",
+            prefixPhoneNumber: "+351",
+            contactNumber: "",
+            nif: "",
+        },
     });
+
+    const { handleSubmit, control, formState: { isSubmitting }, trigger } = form;
 
     const onSubmit = async (data: AgreementSchemaInput) => {
         const toastId = toast.loading("Initiating agreement...");
+        const contactNumber = `${data.prefixPhoneNumber}${data.contactNumber}`;
+        const payload = {
+            establishmentName: data.establishmentName,
+            email: data.email,
+            contactNumber: contactNumber,
+            nif: data.nif,
+        };
 
         try {
-            const res = await initiateAgreementAction(data);
+            const res = await initiateAgreementAction(payload as IInputAgreementProps);
+
             if (res?.success) {
                 toast.success(res?.message || "Agreement initiated successfully!", { id: toastId });
                 router.push(`/verify-otp?email=${encodeURIComponent(data.email)}`);
@@ -50,63 +74,163 @@ export default function AgreementForm() {
                         <p className="text-slate-500 text-sm">Please provide the legal details for the vendor agreement setup.</p>
                     </div>
 
-                    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-                        {/* Legal Name */}
-                        <div className="space-y-2">
-                            <Label className="text-[#DC3173] text-xs font-bold uppercase tracking-wider">Legal Name / Business Name</Label>
-                            <Input
-                                {...register("establishmentName")}
-                                placeholder="Enter legal business name"
-                                className="bg-slate-50 border-slate-200 h-12 focus-visible:ring-[#DC3173]"
+                    <Form {...form}>
+                        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 my-10">
+
+                            {/* BUSINESS NAME */}
+                            <FormField
+                                control={control}
+                                name="establishmentName"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel className="text-[#DC3173] text-xs font-bold uppercase">
+                                            Legal Name / Business Name
+                                        </FormLabel>
+                                        <FormControl>
+                                            <Input
+                                                {...field}
+                                                placeholder="Enter legal business name"
+                                                className="bg-slate-50 border-slate-200 h-12"
+                                            />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
                             />
-                            {errors.establishmentName && <p className="text-red-500 text-xs italic">{errors.establishmentName.message}</p>}
-                        </div>
 
-                        {/* Email Address */}
-                        <div className="space-y-2">
-                            <Label className="text-[#DC3173] text-xs font-bold uppercase tracking-wider">Email Address</Label>
-                            <Input
-                                {...register("email")}
-                                placeholder="contact@business.com"
-                                className="bg-slate-50 border-slate-200 h-12 focus-visible:ring-[#DC3173]"
+                            {/* EMAIL */}
+                            <FormField
+                                control={control}
+                                name="email"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel className="text-[#DC3173] text-xs font-bold uppercase">
+                                            Email Address
+                                        </FormLabel>
+                                        <FormControl>
+                                            <Input
+                                                {...field}
+                                                placeholder="contact@business.com"
+                                                className="bg-slate-50 border-slate-200 h-12"
+                                            />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
                             />
-                            {errors.email && <p className="text-red-500 text-xs italic">{errors.email.message}</p>}
-                        </div>
 
-                        {/* Phone and Tax ID Row */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div className="space-y-2">
-                                <Label className="text-[#DC3173] text-xs font-bold uppercase tracking-wider">Phone Number</Label>
-                                <Input
-                                    {...register("contactNumber")}
-                                    placeholder="+1 (555) 000-0000"
-                                    className="bg-slate-50 border-slate-200 h-12 focus-visible:ring-[#DC3173]"
-                                />
-                                {errors.contactNumber && <p className="text-red-500 text-xs italic">{errors.contactNumber.message}</p>}
-                            </div>
-                            <div className="space-y-2">
-                                <Label className="text-[#DC3173] text-xs font-bold uppercase tracking-wider">Tax ID / NIF</Label>
-                                <Input
-                                    {...register("nif")}
-                                    placeholder="987654321"
-                                    className="bg-slate-50 border-slate-200 h-12 focus-visible:ring-[#DC3173]"
-                                />
-                                {errors.nif && <p className="text-red-500 text-xs italic">{errors.nif.message}</p>}
-                            </div>
-                        </div>
+                            {/* PHONE + NIF */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-                        {/* Footer Buttons */}
-                        <div className="flex flex-col sm:flex-row justify-end items-center pt-4 gap-4">
-                            <Button
-                                type="submit"
-                                disabled={isSubmitting}
-                                className="bg-[#DC3173] hover:bg-[#c22b65] text-white px-10 py-6 text-md font-bold rounded-lg transition-all"
-                            >
-                                {isSubmitting ? "Processing..." : "Continue"}
-                                <ArrowRight className="ml-2 h-5 w-5" />
-                            </Button>
-                        </div>
-                    </form>
+                                {/* PHONE FIELD */}
+                                <FormField
+                                    control={control}
+                                    name="contactNumber"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel className="text-[#DC3173] text-xs font-bold uppercase">
+                                                Contact Number
+                                            </FormLabel>
+
+                                            <FormControl>
+                                                <div className="relative flex">
+
+                                                    {/* PREFIX */}
+                                                    <Controller
+                                                        control={control}
+                                                        name="prefixPhoneNumber"
+                                                        render={({ field: prefixField }) => (
+                                                            <div className="absolute left-2 top-1 z-10">
+                                                                <PhoneInput
+                                                                    value={prefixField.value || "+351"}
+                                                                    defaultCountry="pt"
+                                                                    forceDialCode
+                                                                    disableDialCodePrefill={false}
+                                                                    onChange={(value, meta) => {
+                                                                        const dial = `+${meta.country.dialCode}`;
+
+                                                                        prefixField.onChange(dial);
+
+                                                                        // FIX: ensures first render sync
+                                                                        trigger("contactNumber");
+                                                                    }}
+                                                                    countrySelectorStyleProps={{
+                                                                        buttonStyle: {
+                                                                            border: "none",
+                                                                            height: "36px",
+                                                                            backgroundColor: "transparent",
+                                                                        },
+                                                                    }}
+                                                                    inputStyle={{
+                                                                        marginTop: "1px",
+                                                                        border: "none",
+                                                                        height: "34px",
+                                                                        width: "48px",
+                                                                        backgroundColor: "#ccc",
+                                                                    }}
+                                                                    inputProps={{
+                                                                        readOnly: true,
+                                                                    }}
+                                                                />
+                                                            </div>
+                                                        )}
+                                                    />
+
+                                                    {/* NUMBER INPUT */}
+                                                    <Input
+                                                        value={field.value}
+                                                        onChange={(e) => {
+                                                            const onlyDigits = e.target.value.replace(/\D/g, "");
+                                                            field.onChange(onlyDigits);
+                                                            trigger("contactNumber");
+                                                        }}
+                                                        placeholder="912345678"
+                                                        className="pl-28 bg-slate-50 border-slate-200 h-12"
+                                                    />
+                                                </div>
+                                            </FormControl>
+
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+
+                                {/* NIF */}
+                                <FormField
+                                    control={control}
+                                    name="nif"
+                                    render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel className="text-[#DC3173] text-xs font-bold uppercase">
+                                                Tax ID / NIF
+                                            </FormLabel>
+                                            <FormControl>
+                                                <Input
+                                                    {...field}
+                                                    placeholder="987654321"
+                                                    className="bg-slate-50 border-slate-200 h-12"
+                                                />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}
+                                />
+
+                            </div>
+
+                            {/* SUBMIT */}
+                            <div className="flex justify-end">
+                                <Button
+                                    type="submit"
+                                    disabled={isSubmitting}
+                                    className="bg-[#DC3173] text-white px-10 py-6 font-bold"
+                                >
+                                    {isSubmitting ? "Processing..." : "Continue"}
+                                </Button>
+                            </div>
+
+                        </form>
+                    </Form>
                 </CardContent>
             </Card>
         </div>
