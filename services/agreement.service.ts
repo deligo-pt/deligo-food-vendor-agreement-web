@@ -4,7 +4,7 @@
 
 import { AgreementSchema, AgreementSchemaInput } from "@/lib/schema/agreement.schema";
 import { serverFetch } from "@/lib/serverFetch";
-import { revalidateTag } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 
 export async function initiateAgreementAction(data: AgreementSchemaInput) {
     const validatedFields = AgreementSchema.safeParse(data);
@@ -78,6 +78,7 @@ export const signAgreementReq = async (agreementId: string, signatureImage: stri
         if (data?.success) {
             revalidateTag(`agreement-${agreementId}`, {});
             revalidateTag("agreement", {});
+            revalidatePath("/agreement");
         }
 
         return data;
