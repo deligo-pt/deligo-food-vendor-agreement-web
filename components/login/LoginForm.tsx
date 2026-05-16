@@ -8,19 +8,22 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { Mail, Lock, EyeOff, ShieldCheck, ArrowRight, EyeIcon } from "lucide-react";
+import { Mail, Lock, EyeOff, ShieldCheck, ArrowRight, EyeIcon, HelpCircle, Phone } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { loginService } from "@/services/auth.service";
 import { toast } from "sonner";
 import { getDeviceInfo } from "@/utils/getDeviceInfo";
 import { TLoginPayload } from "@/types/login.type";
 import { useState } from "react";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 
 export default function LoginForm() {
     const router = useRouter();
     const deviceInfo = getDeviceInfo();
     const [showPassword, setShowPassword] = useState(false);
+    const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
+
     const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<LoginInput>({
         resolver: zodResolver(LoginSchema),
     });
@@ -124,9 +127,64 @@ export default function LoginForm() {
                 </Card>
 
                 <p className="mt-8 text-sm text-slate-600">
-                    Need assistance? <span className="text-[#DC3173] font-bold cursor-pointer hover:underline">Contact System Administrator</span>
+                    Need assistance?
+                    <span
+                        onClick={() => setIsHelpModalOpen(true)}
+                        className="text-[#DC3173] font-bold cursor-pointer hover:underline pl-2">Contact System Administrator</span>
                 </p>
             </main>
+
+            {/* Deligo System Administration Support Modal */}
+            <Dialog open={isHelpModalOpen} onOpenChange={setIsHelpModalOpen}>
+                <DialogContent className="sm:max-w-md border-none shadow-xl">
+                    <DialogHeader className="space-y-2 flex flex-col items-center text-center">
+                        <div className="p-3 bg-[#DC3173]/10 rounded-full text-[#DC3173] mb-1">
+                            <HelpCircle className="h-6 w-6" />
+                        </div>
+                        <DialogTitle className="text-xl font-bold text-slate-800">System Support</DialogTitle>
+                        <DialogDescription className="text-sm text-slate-500">
+                            Get in touch with Deligo support to resolve your credential or platform access issues.
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <div className="space-y-4 py-4">
+                        {/* Support Email */}
+                        <div className="flex items-center gap-4 p-4 bg-slate-50 rounded-xl border border-slate-100 hover:bg-slate-100/70 transition-colors">
+                            <div className="p-2.5 bg-white rounded-lg shadow-xs text-slate-600 border border-slate-100">
+                                <Mail className="h-5 w-5" />
+                            </div>
+                            <div className="flex flex-col">
+                                <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Email Address</span>
+                                <a href="mailto:contact@deligo.pt" className="text-sm font-bold text-slate-700 hover:text-[#DC3173] transition-colors">
+                                    contact@deligo.pt
+                                </a>
+                            </div>
+                        </div>
+
+                        {/* Support Hotline */}
+                        <div className="flex items-center gap-4 p-4 bg-slate-50 rounded-xl border border-slate-100 hover:bg-slate-100/70 transition-colors">
+                            <div className="p-2.5 bg-white rounded-lg shadow-xs text-slate-600 border border-slate-100">
+                                <Phone className="h-5 w-5" />
+                            </div>
+                            <div className="flex flex-col">
+                                <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Contact Hotline</span>
+                                <a href="tel:+351920136680" className="text-sm font-bold text-slate-700 hover:text-[#DC3173] transition-colors">
+                                    +351 920 136 680
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="flex justify-end pt-2">
+                        <Button
+                            onClick={() => setIsHelpModalOpen(false)}
+                            className="bg-[#DC3173] hover:bg-[#DC3173]/80 text-white px-6"
+                        >
+                            Close
+                        </Button>
+                    </div>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }
