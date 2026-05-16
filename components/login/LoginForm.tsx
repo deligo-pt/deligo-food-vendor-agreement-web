@@ -40,7 +40,7 @@ export default function LoginForm() {
             if (res?.success) {
                 toast.success(res?.message, { id: toastId });
                 router.push("/agreement-form");
-            };
+            }
         } catch (err: any) {
             console.log(err);
             toast.error(err?.message || "Login failed. Please try again.", { id: toastId });

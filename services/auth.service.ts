@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 'use server';
 
+import { DEVICE_KEY } from "@/consts/device.const";
 import { VerifyOtpInput, VerifyOtpSchema } from "@/lib/schema/verify.schema";
 import { serverFetch } from "@/lib/serverFetch";
 import { TLoginPayload } from "@/types/login.type";
@@ -103,4 +104,39 @@ export const resendOtpReq = async (email: string) => {
         console.error("Resend OTP Error:", error);
         return { error: "Network error. Please check your connection." };
     }
-}
+};
+
+// Assuming backendUrl and DEVICE_KEY are imported from your config constants
+export const logoutService = async () => {
+    try {
+        const cookieStore = await cookies();
+        const deviceId = cookieStore.get(DEVICE_KEY)?.value || "";
+
+        if (!deviceId) {
+            throw new Error("Device information is missing. Logout failed.");
+        };
+
+        const response = await serverFetch.post(`/auth/logout`, {
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ deviceId }),
+        });
+
+        const result = await response.json();
+
+        if (!response.ok) {
+            throw new Error(result.message || "Something went wrong during logout");
+        }
+
+        // Successfully logged out on the backend, now delete the tokens from cookies
+        cookieStore.delete("accessToken");
+
+        cookieStore.delete("refreshToken");
+
+        return result;
+    } catch (error: any) {
+        console.error("Logout Service Error:", error.message);
+        throw error;
+    }
+};
