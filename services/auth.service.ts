@@ -26,9 +26,6 @@ export const loginService = async (credentials: TLoginPayload) => {
             throw new Error(result.message || "Something went wrong during login");
         };
 
-        const decoded = await verifyJWT(result?.data?.accessToken);
-        const role = decoded.data?.role;
-
         // if (role !== "SUPER_ADMIN" && role !== "ADMIN") {
         //     throw new Error("You are not authorized");
         // }
@@ -49,7 +46,7 @@ export const loginService = async (credentials: TLoginPayload) => {
         //     path: "/",
         // });
 
-        return { role, ...result };
+        return result;
     } catch (error: any) {
         console.error("Login Service Error:", error.message);
         throw error;

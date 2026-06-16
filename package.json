@@ -20,6 +20,7 @@
     "input-otp": "^1.4.2",
     "jose": "^6.2.3",
     "js-cookie": "^3.0.5",
+    "jwt-decode": "^4.0.0",
     "libphonenumber-js": "^1.13.2",
     "lucide-react": "^1.14.0",
     "next": "16.2.6",

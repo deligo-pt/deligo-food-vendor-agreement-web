@@ -18,6 +18,7 @@ import { useState } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import ClearSessionModal from "./ClearSessionModal";
 import { setCookie } from "@/utils/cookies";
+import { jwtDecode } from "jwt-decode";
 
 
 export default function LoginForm() {
@@ -46,22 +47,27 @@ export default function LoginForm() {
                 ...payload,
                 deviceDetails,
             } as TLoginPayload);
-
+            console.log("login res", res);
             if (res?.success) {
-                if (res.role === "ADMIN" || res.role === "SUPER_ADMIN") {
+                const decoded = jwtDecode(res.data.accessToken) as { role: string };
+                if (decoded.role === "SUPER_ADMIN" || decoded.role === "ADMIN") {
                     setCookie("accessToken", res?.data?.accessToken, 7);
                     setCookie("refreshToken", res?.data?.refreshToken, 365);
                     toast.success(res?.message, { id: toastId });
+                    router.push("/agreement-form");
+                    return;
+                } else {
+                    toast.error("You are not authorized to access this panel!", { id: toastId })
+                    router.push('/login')
+                    return;
                 }
-                router.push("/agreement-form");
-                return res;
             }
 
             toast.error(res?.message || "Login failed. Please try again.", {
                 id: toastId,
             });
 
-            return res;
+            return;
         } catch (err: any) {
             console.error("Login Error:", err);
             if (err?.message === "LIMIT_EXCEEDED") {
@@ -73,10 +79,7 @@ export default function LoginForm() {
                 { id: toastId }
             );
 
-            return {
-                success: false,
-                message: err?.message,
-            };
+            return;
         }
     };
 
