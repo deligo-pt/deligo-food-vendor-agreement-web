@@ -8,7 +8,7 @@ interface IProps {
 
 const AgreementViewerPage = async ({ searchParams }: IProps) => {
     const agreementId = (await searchParams).agreementId || "";
-    const { data } = await getSingleAgreement(agreementId);
+    const data = await getSingleAgreement(agreementId);
 
     return (
         <>

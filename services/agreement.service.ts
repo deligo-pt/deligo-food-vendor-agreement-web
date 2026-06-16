@@ -59,11 +59,12 @@ export const getSingleAgreement = async (agreementId: string) => {
     }
 };
 
-export const signAgreementReq = async (agreementId: string, signatureImage: string) => {
+export const signAgreementReq = async (agreementId: string, agentSignature: string, establishmentSignature: string) => {
     try {
         const response = await serverFetch.post(`/agreements/sign/${agreementId}`, {
             body: JSON.stringify({
-                signatureImage,
+                agentSignature,
+                establishmentSignature
             }),
             headers: {
                 "Content-Type": "application/json",

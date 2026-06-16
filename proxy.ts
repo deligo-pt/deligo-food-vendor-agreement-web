@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { verifyJWT } from './utils/verifyJwt';
+import { USER_ROLE } from './consts/user.const';
 
 // Define the routes that require a valid accessToken
 const protectedRoutes = [
@@ -11,7 +13,7 @@ const protectedRoutes = [
 // Define the auth routes (where users go to log in)
 const authRoutes = ['/login'];
 
-export function proxy(request: NextRequest) {
+export async function proxy(request: NextRequest) {
     const { nextUrl, cookies } = request;
 
     // 1. Retrieve the accessToken from cookies
@@ -23,6 +25,39 @@ export function proxy(request: NextRequest) {
     const isAuthRoute = authRoutes.some((route) =>
         nextUrl.pathname.startsWith(route)
     );
+
+    // let isAdmin = false;
+
+    // try {
+    //     if (token) {
+    //         const decoded = await verifyJWT(token);
+
+    //         if (
+    //             decoded.success &&
+    //             [USER_ROLE.ADMIN, USER_ROLE.SUPER_ADMIN].includes(
+    //                 decoded?.data?.role
+    //             )
+    //         ) {
+    //             isAdmin = true;
+    //         }
+    //     }
+    // } catch (error) {
+    //     console.error("JWT verification failed:", error);
+    // }
+
+    // // PROTECT ADMIN ROUTES
+    // if (isProtectedRoute) {
+    //     if (token || !isAdmin) {
+    //         const loginUrl = new URL('/login', request.url);
+    //         const response = NextResponse.redirect(loginUrl);
+
+    //         // remove tokens
+    //         response.cookies.delete("accessToken");
+    //         response.cookies.delete("refreshToken");
+
+    //         return response;
+    //     }
+    // }
 
     // 2. If trying to access a protected route without a token, redirect to login
     if (isProtectedRoute && !token) {
