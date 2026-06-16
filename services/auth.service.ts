@@ -5,6 +5,7 @@ import { DEVICE_KEY } from "@/consts/device.const";
 import { VerifyOtpInput, VerifyOtpSchema } from "@/lib/schema/verify.schema";
 import { serverFetch } from "@/lib/serverFetch";
 import { TLoginPayload } from "@/types/login.type";
+import { verifyJWT } from "@/utils/verifyJwt";
 import { cookies } from "next/headers";
 
 const backendUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000/api/v1";
@@ -25,6 +26,12 @@ export const loginService = async (credentials: TLoginPayload) => {
             throw new Error(result.message || "Something went wrong during login");
         };
 
+        const decoded = await verifyJWT(result?.data?.accessToken);
+        const role = decoded.data?.role;
+        // if(role !== "SUPER_ADMIN" && role !== "ADMIN"){
+        //     throw new Error("You are not authorized to access this panel");
+        // }
+
         const cookieStore = await cookies();
         cookieStore.set("accessToken", result?.data?.accessToken, {
             httpOnly: true,
@@ -41,7 +48,7 @@ export const loginService = async (credentials: TLoginPayload) => {
             path: "/",
         });
 
-        return result;
+        return { role, ...result };
     } catch (error: any) {
         console.error("Login Service Error:", error.message);
         throw error;

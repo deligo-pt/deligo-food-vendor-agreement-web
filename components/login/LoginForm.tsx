@@ -39,11 +39,19 @@ export default function LoginForm() {
 
         try {
             const res = await loginService(payload as TLoginPayload);
-
-            if (res?.success) {
+            console.log("res", res);
+            if (res.success) {
                 toast.success(res?.message, { id: toastId });
                 router.push("/agreement-form");
             }
+            // if (res?.success) {
+            //     if (res?.role === "SUPER_ADMIN" || res?.role === "ADMIN") {
+            //         toast.success(res?.message, { id: toastId });
+            //         router.push("/agreement-form");
+            //     } else {
+            //         toast.error("You are not authorized to access this panel", { id: toastId })
+            //     }
+            // }
         } catch (err: any) {
             console.log(err);
             toast.error(err?.message || "Login failed. Please try again.", { id: toastId });
