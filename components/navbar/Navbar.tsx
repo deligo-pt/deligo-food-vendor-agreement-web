@@ -1,10 +1,45 @@
-import React from "react";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+'use client';
 import { Button } from "@/components/ui/button";
-import { HelpCircle } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { toast } from "sonner";
+import Cookies from 'js-cookie';
+import { useRouter } from "next/navigation";
+import { logoutService } from "@/services/auth.service";
+import { useStore } from "@/store/store";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 
 export function Navbar() {
+    const router = useRouter();
+    const { lang, setLang } = useStore();
+
+    const logOut = async () => {
+        const toastId = toast.loading("Logging out...");
+
+        try {
+            const result = await logoutService();
+
+            if (result?.success) {
+                toast.success(result?.message || "Logout successful!", {
+                    id: toastId,
+                });
+
+                Cookies.remove("accessToken");
+                Cookies.remove("refreshToken");
+                router.push("/login");
+                return;
+            }
+
+            toast.error(result?.message || "Logout failed", { id: toastId });
+            return;
+
+        } catch (error: any) {
+            console.error("Logout Error:", error);
+            toast.error(error?.message || "An error occurred during logout.", { id: toastId });
+        }
+    };
+
     return (
         <nav className="py-6 px-8 bg-white border-b border-gray-100 shadow-sm">
             <div className="max-w-7xl flex items-center justify-between mx-auto">
@@ -33,8 +68,29 @@ export function Navbar() {
 
                 {/* Action Icons */}
                 <div className="flex items-center gap-4">
-                    <Button variant="ghost" size="icon" className="text-gray-400 hover:text-[#DC3173]">
-                        <HelpCircle className="h-5 w-5" />
+
+                    {/* Language & Dark Mode */}
+                    <Select
+                        value={lang}
+                        onValueChange={(value: "en" | "pt") => {
+                            setLang(value);
+                        }}
+                    >
+                        <SelectTrigger className="w-17.5 hover:border hover:border-[#DC3173]">
+                            <SelectValue placeholder="Language" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="en">EN</SelectItem>
+                            <SelectItem value="pt">PT</SelectItem>
+                        </SelectContent>
+                    </Select>
+                    {/* Logout Button */}
+                    <Button
+                        onClick={logOut}
+                        variant="outline"
+                        className="ml-4 px-5 border-[#DC3173] text-[#DC3173] font-semibold rounded-lg shadow-md hover:bg-[#DC3173] hover:text-white hover:shadow-lg hover:scale-105 active:scale-95 transition-all duration-300"
+                    >
+                        Logout
                     </Button>
                 </div>
             </div>

@@ -2,20 +2,21 @@
 "use server";
 
 
-import { AgreementSchema, AgreementSchemaInput } from "@/lib/schema/agreement.schema";
 import { serverFetch } from "@/lib/serverFetch";
 import { revalidatePath, revalidateTag } from "next/cache";
 
-export async function initiateAgreementAction(data: AgreementSchemaInput) {
-    const validatedFields = AgreementSchema.safeParse(data);
+export interface IInputAgreementProps {
+    establishmentName: string;
+    email: string;
+    contactNumber: string;
+    nif: string;
+};
 
-    if (!validatedFields.success) {
-        return { error: "Please check the form errors." };
-    }
+export async function initiateAgreementAction(data: IInputAgreementProps) {
 
     try {
         const response = await serverFetch.post("/agreements/initiate", {
-            body: JSON.stringify(validatedFields.data),
+            body: JSON.stringify(data),
             headers: {
                 "Content-Type": "application/json",
             },

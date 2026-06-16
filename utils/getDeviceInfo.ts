@@ -8,7 +8,7 @@ import { DEVICE_KEY } from "@/consts/device.const";
 export const getDeviceInfo = async () => {
     const parser = new UAParser();
     const result = parser.getResult();
-    const token = await getFcmToken();
+    const token = (await getFcmToken().catch(() => "")) || "";
 
     let deviceId = Cookies.get(DEVICE_KEY);
 
