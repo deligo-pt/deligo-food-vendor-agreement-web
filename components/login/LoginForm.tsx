@@ -17,6 +17,7 @@ import { TLoginPayload } from "@/types/login.type";
 import { useState } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import ClearSessionModal from "./ClearSessionModal";
+import { setCookie } from "@/utils/cookies";
 
 
 export default function LoginForm() {
@@ -47,7 +48,11 @@ export default function LoginForm() {
             } as TLoginPayload);
 
             if (res?.success) {
-                toast.success(res?.message, { id: toastId });
+                if (res.role === "ADMIN" || res.role === "SUPER_ADMIN") {
+                    setCookie("accessToken", res?.data?.accessToken, 7);
+                    setCookie("refreshToken", res?.data?.refreshToken, 365);
+                    toast.success(res?.message, { id: toastId });
+                }
                 router.push("/agreement-form");
                 return res;
             }

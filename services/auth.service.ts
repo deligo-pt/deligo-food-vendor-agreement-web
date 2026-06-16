@@ -33,23 +33,23 @@ export const loginService = async (credentials: TLoginPayload) => {
             throw new Error("You are not authorized");
         }
 
-        const cookieStore = await cookies();
-        cookieStore.set("accessToken", result?.data?.accessToken, {
-            httpOnly: true,
-            secure: true,
-            sameSite: "lax",
-            maxAge: 60 * 60 * 24 * 7,
-            path: "/",
-        });
-        cookieStore.set("refreshToken", result?.data?.refreshToken, {
-            httpOnly: true,
-            secure: true,
-            sameSite: "lax",
-            maxAge: 60 * 60 * 60 * 24 * 7,
-            path: "/",
-        });
+        // const cookieStore = await cookies();
+        // cookieStore.set("accessToken", result?.data?.accessToken, {
+        //     httpOnly: true,
+        //     secure: true,
+        //     sameSite: "lax",
+        //     maxAge: 60 * 60 * 24 * 7,
+        //     path: "/",
+        // });
+        // cookieStore.set("refreshToken", result?.data?.refreshToken, {
+        //     httpOnly: true,
+        //     secure: true,
+        //     sameSite: "lax",
+        //     maxAge: 60 * 60 * 60 * 24 * 7,
+        //     path: "/",
+        // });
 
-        return result;
+        return { role, ...result };
     } catch (error: any) {
         console.error("Login Service Error:", error.message);
         throw error;
