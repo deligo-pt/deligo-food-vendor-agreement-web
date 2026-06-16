@@ -29,9 +29,9 @@ export const loginService = async (credentials: TLoginPayload) => {
         const decoded = await verifyJWT(result?.data?.accessToken);
         const role = decoded.data?.role;
 
-        if (role !== "SUPER_ADMIN" && role !== "ADMIN") {
-            throw new Error("You are not authorized");
-        }
+        // if (role !== "SUPER_ADMIN" && role !== "ADMIN") {
+        //     throw new Error("You are not authorized");
+        // }
 
         // const cookieStore = await cookies();
         // cookieStore.set("accessToken", result?.data?.accessToken, {
