@@ -28,25 +28,26 @@ export const loginService = async (credentials: TLoginPayload) => {
 
         const decoded = await verifyJWT(result?.data?.accessToken);
         const role = decoded.data?.role;
-        // if(role !== "SUPER_ADMIN" && role !== "ADMIN"){
-        //     throw new Error("You are not authorized to access this panel");
-        // }
 
-        const cookieStore = await cookies();
-        cookieStore.set("accessToken", result?.data?.accessToken, {
-            httpOnly: true,
-            secure: true,
-            sameSite: "lax",
-            maxAge: 60 * 60 * 24 * 7,
-            path: "/",
-        });
-        cookieStore.set("refreshToken", result?.data?.refreshToken, {
-            httpOnly: true,
-            secure: true,
-            sameSite: "lax",
-            maxAge: 60 * 60 * 60 * 24 * 7,
-            path: "/",
-        });
+        if (role !== "SUPER_ADMIN" && role !== "ADMIN") {
+            throw new Error("You are not authorized");
+        }
+
+        // const cookieStore = await cookies();
+        // cookieStore.set("accessToken", result?.data?.accessToken, {
+        //     httpOnly: true,
+        //     secure: true,
+        //     sameSite: "lax",
+        //     maxAge: 60 * 60 * 24 * 7,
+        //     path: "/",
+        // });
+        // cookieStore.set("refreshToken", result?.data?.refreshToken, {
+        //     httpOnly: true,
+        //     secure: true,
+        //     sameSite: "lax",
+        //     maxAge: 60 * 60 * 60 * 24 * 7,
+        //     path: "/",
+        // });
 
         return { role, ...result };
     } catch (error: any) {

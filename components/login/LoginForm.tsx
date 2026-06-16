@@ -16,6 +16,8 @@ import { getDeviceInfo } from "@/utils/getDeviceInfo";
 import { TLoginPayload } from "@/types/login.type";
 import { useState } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import ClearSessionModal from "./ClearSessionModal";
+import { setCookie } from "@/utils/cookies";
 
 
 export default function LoginForm() {
@@ -23,38 +25,80 @@ export default function LoginForm() {
     const deviceInfo = getDeviceInfo();
     const [showPassword, setShowPassword] = useState(false);
     const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
+    const [showModal, setShowModal] = useState(false);
+    const [removeSubmitting, setRemoveSubmitting] = useState(false);
 
-    const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<LoginInput>({
+    const { register, handleSubmit, getValues, formState: { errors, isSubmitting } } = useForm<LoginInput>({
         resolver: zodResolver(LoginSchema),
     });
 
-    const onSubmit = async (data: LoginInput) => {
+    const login = async (payload: {
+        email: string;
+        password: string;
+        forceLogin?: boolean;
+    }) => {
         const toastId = toast.loading("Authenticating...");
 
-        const deviceDetails = await deviceInfo;
-        const payload = {
-            ...data,
-            deviceDetails
-        };
+        try {
+            const deviceDetails = await deviceInfo;
+
+            const res = await loginService({
+                ...payload,
+                deviceDetails,
+            } as TLoginPayload);
+
+            if (res?.success) {
+                if (res.role === "ADMIN" || res.role === "SUPER_ADMIN") {
+                    setCookie("accessToken", res?.data?.accessToken, 7);
+                    setCookie("refreshToken", res?.data?.refreshToken, 365);
+                    toast.success(res?.message, { id: toastId });
+                }
+                router.push("/agreement-form");
+                return res;
+            }
+
+            toast.error(res?.message || "Login failed. Please try again.", {
+                id: toastId,
+            });
+
+            return res;
+        } catch (err: any) {
+            console.error("Login Error:", err);
+            if (err?.message === "LIMIT_EXCEEDED") {
+                setShowModal(true);
+            }
+
+            toast.error(
+                err?.message || "Login failed. Please try again.",
+                { id: toastId }
+            );
+
+            return {
+                success: false,
+                message: err?.message,
+            };
+        }
+    };
+
+    const onSubmit = async (data: LoginInput) => {
+        await login({
+            email: data.email,
+            password: data.password,
+        });
+    };
+
+    const clearSession = async () => {
+        setRemoveSubmitting(true);
 
         try {
-            const res = await loginService(payload as TLoginPayload);
-            console.log("res", res);
-            if (res.success) {
-                toast.success(res?.message, { id: toastId });
-                router.push("/agreement-form");
-            }
-            // if (res?.success) {
-            //     if (res?.role === "SUPER_ADMIN" || res?.role === "ADMIN") {
-            //         toast.success(res?.message, { id: toastId });
-            //         router.push("/agreement-form");
-            //     } else {
-            //         toast.error("You are not authorized to access this panel", { id: toastId })
-            //     }
-            // }
-        } catch (err: any) {
-            console.log(err);
-            toast.error(err?.message || "Login failed. Please try again.", { id: toastId });
+            await login({
+                email: getValues("email"),
+                password: getValues("password"),
+                forceLogin: true,
+            });
+        } finally {
+            setRemoveSubmitting(false);
+            setShowModal(false);
         }
     };
 
@@ -193,6 +237,13 @@ export default function LoginForm() {
                     </div>
                 </DialogContent>
             </Dialog>
+
+            <ClearSessionModal
+                open={showModal}
+                onOpenChange={(open) => setShowModal(open)}
+                onRemove={clearSession}
+                isSubmitting={removeSubmitting}
+            />
         </div>
     );
 }

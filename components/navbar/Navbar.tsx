@@ -4,11 +4,11 @@ import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import Link from "next/link";
 import { toast } from "sonner";
-import Cookies from 'js-cookie';
 import { useRouter } from "next/navigation";
 import { logoutService } from "@/services/auth.service";
 import { useStore } from "@/store/store";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
+import { removeCookie } from "@/utils/cookies";
 
 export function Navbar() {
     const router = useRouter();
@@ -25,8 +25,8 @@ export function Navbar() {
                     id: toastId,
                 });
 
-                Cookies.remove("accessToken");
-                Cookies.remove("refreshToken");
+                removeCookie("accessToken");
+                removeCookie("refreshToken");
                 router.push("/login");
                 return;
             }
@@ -36,6 +36,17 @@ export function Navbar() {
 
         } catch (error: any) {
             console.error("Logout Error:", error);
+
+            if (error?.message === "You have been logged out from this device. Please log in again.") {
+                toast.success("Logout successful!", {
+                    id: toastId,
+                });
+
+                removeCookie("accessToken");
+                removeCookie("refreshToken");
+                router.push("/login");
+                return;
+            }
             toast.error(error?.message || "An error occurred during logout.", { id: toastId });
         }
     };
