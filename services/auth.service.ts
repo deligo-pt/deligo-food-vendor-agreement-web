@@ -1,56 +1,32 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 'use server';
 
 import { DEVICE_KEY } from "@/consts/device.const";
 import { VerifyOtpInput, VerifyOtpSchema } from "@/lib/schema/verify.schema";
 import { serverFetch } from "@/lib/serverFetch";
 import { TLoginPayload } from "@/types/login.type";
-import { verifyJWT } from "@/utils/verifyJwt";
+import { catchAsync } from "@/utils/catchAsync";
 import { cookies } from "next/headers";
 
 const backendUrl = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5000/api/v1";
 
-export const loginService = async (credentials: TLoginPayload) => {
-    try {
+export const loginService = async (data: TLoginPayload) => {
+    return catchAsync<{ accessToken: string; refreshToken: string }>(async () => {
         const response = await fetch(`${backendUrl}/auth/login`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
             },
-            body: JSON.stringify(credentials),
+            body: JSON.stringify(data),
         });
 
         const result = await response.json();
 
         if (!response.ok) {
-            throw new Error(result.message || "Something went wrong during login");
-        };
-
-        // if (role !== "SUPER_ADMIN" && role !== "ADMIN") {
-        //     throw new Error("You are not authorized");
-        // }
-
-        // const cookieStore = await cookies();
-        // cookieStore.set("accessToken", result?.data?.accessToken, {
-        //     httpOnly: true,
-        //     secure: true,
-        //     sameSite: "lax",
-        //     maxAge: 60 * 60 * 24 * 7,
-        //     path: "/",
-        // });
-        // cookieStore.set("refreshToken", result?.data?.refreshToken, {
-        //     httpOnly: true,
-        //     secure: true,
-        //     sameSite: "lax",
-        //     maxAge: 60 * 60 * 60 * 24 * 7,
-        //     path: "/",
-        // });
+            throw new Error(result?.message || "Failed to login");
+        }
 
         return result;
-    } catch (error: any) {
-        console.error("Login Service Error:", error.message);
-        throw error;
-    }
+    });
 };
 
 export const verifyOtpReq = async (payload: VerifyOtpInput & { email: string }) => {
@@ -111,37 +87,33 @@ export const resendOtpReq = async (email: string) => {
     }
 };
 
-// Assuming backendUrl and DEVICE_KEY are imported from your config constants
 export const logoutService = async () => {
-    try {
-        const cookieStore = await cookies();
-        const deviceId = cookieStore.get(DEVICE_KEY)?.value || "";
+    const cookieStore = await cookies();
+    const deviceId = cookieStore.get(DEVICE_KEY)?.value || "";
 
-        if (!deviceId) {
-            throw new Error("Device information is missing. Logout failed.");
-        };
+    const cookieStr = cookieStore.toString();
+    const accessToken = cookieStore.get("accessToken")?.value || "";
 
-        const response = await serverFetch.post(`/auth/logout`, {
+    return catchAsync<null>(async () => {
+        const response = await fetch(`${backendUrl}/auth/logout`, {
+            method: "POST",
             headers: {
                 "Content-Type": "application/json",
+                ...(accessToken && { authorization: `Bearer ${accessToken}` }),
+                ...(cookieStr && { cookie: cookieStr }),
             },
-            body: JSON.stringify({ deviceId }),
+            body: JSON.stringify({
+                deviceId
+            }
+            ),
         });
 
         const result = await response.json();
 
         if (!response.ok) {
-            throw new Error(result.message || "Something went wrong during logout");
+            throw new Error(result?.message || "Logout failed!");
         }
 
-        // Successfully logged out on the backend, now delete the tokens from cookies
-        cookieStore.delete("accessToken");
-
-        cookieStore.delete("refreshToken");
-
         return result;
-    } catch (error: any) {
-        console.error("Logout Service Error:", error.message);
-        throw error;
-    }
+    });
 };

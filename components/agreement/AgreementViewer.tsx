@@ -32,6 +32,7 @@ export default function AgreementViewer({ agreement }: AgreementViewerProps) {
     const [signedPdfUrl, setSignedPdfUrl] = useState<string | null>(
         agreement?.signedPdfPath || null
     );
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     const pdfUrl = signedPdfUrl || agreement?.signedPdfPath || agreement?.draftPdfPath || "";
 
@@ -56,6 +57,7 @@ export default function AgreementViewer({ agreement }: AgreementViewerProps) {
 
     const handleSubmit = async () => {
         const toastId = toast.loading("Submitting your signatures...");
+        setIsSubmitting(true);
 
         if (!agentSigRef.current || agentSigRef.current.isEmpty()) {
             toast.error("Please add the Agent signature first.", { id: toastId });
@@ -69,11 +71,11 @@ export default function AgreementViewer({ agreement }: AgreementViewerProps) {
 
         const agentSignature = agentSigRef.current.getTrimmedCanvas().toDataURL("image/png");
         const establishmentSignature = establishmentSigRef.current.getTrimmedCanvas().toDataURL("image/png");
-        
+
 
         try {
             // Pass both values into your request handler when ready
-            const res = await signAgreementReq(agreement?._id,  agentSignature, establishmentSignature );
+            const res = await signAgreementReq(agreement?._id, agentSignature, establishmentSignature);
 
             if (res?.success) {
                 toast.success(res?.message || "Agreement signed successfully!", { id: toastId });
@@ -84,6 +86,8 @@ export default function AgreementViewer({ agreement }: AgreementViewerProps) {
         } catch (error: any) {
             console.error("Sign Agreement Error:", error);
             toast.error(error?.message || "An error occurred while signing. Please try again.", { id: toastId });
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
@@ -227,7 +231,7 @@ export default function AgreementViewer({ agreement }: AgreementViewerProps) {
                             <div className="w-full border-t border-slate-100 mt-4 pt-4 flex flex-col items-center">
                                 <Button
                                     onClick={handleSubmit}
-                                    disabled={isAgentEmpty || isEstablishmentEmpty}
+                                    disabled={isAgentEmpty || isEstablishmentEmpty || isSubmitting}
                                     className="bg-[#DC3173] hover:bg-[#c22b65] text-white px-8 py-5 font-bold"
                                 >
                                     <CheckCircle2 className="w-4 h-4 mr-2" />

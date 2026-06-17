@@ -1,5 +1,6 @@
 
-import { TJwtPayload } from "@/types/jwt.type";
+
+import { TJwtPayload } from "@/types";
 import { jwtVerify } from "jose";
 
 export async function verifyJWT(token: string, isRefreshToken = false) {

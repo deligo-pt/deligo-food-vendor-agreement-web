@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useForm } from "react-hook-form";
@@ -23,7 +22,6 @@ import { jwtDecode } from "jwt-decode";
 
 export default function LoginForm() {
     const router = useRouter();
-    const deviceInfo = getDeviceInfo();
     const [showPassword, setShowPassword] = useState(false);
     const [isHelpModalOpen, setIsHelpModalOpen] = useState(false);
     const [showModal, setShowModal] = useState(false);
@@ -38,56 +36,37 @@ export default function LoginForm() {
         password: string;
         forceLogin?: boolean;
     }) => {
-        const toastId = toast.loading("Authenticating...");
+        const toastId = toast.loading("Logging in...");
 
-        try {
-            const deviceDetails = await deviceInfo;
+        const deviceDetails = await getDeviceInfo();
 
-            const res = await loginService({
-                ...payload,
-                deviceDetails,
-            } as TLoginPayload);
-            console.log("login res", res);
-            if (res?.success) {
-                const decoded = jwtDecode(res.data.accessToken) as { role: string };
-                if (decoded.role === "SUPER_ADMIN" || decoded.role === "ADMIN") {
-                    setCookie("accessToken", res?.data?.accessToken, 7);
-                    setCookie("refreshToken", res?.data?.refreshToken, 365);
-                    toast.success(res?.message, { id: toastId });
-                    router.push("/agreement-form");
-                    return;
-                } else {
-                    toast.error("You are not authorized to access this panel!", { id: toastId })
-                    router.push('/login')
-                    return;
-                }
+        const result = await loginService({ ...payload, deviceDetails } as TLoginPayload);
+
+        if (result?.success) {
+            const decoded = jwtDecode(result.data.accessToken) as { role: string };
+
+            if (decoded.role === "SUPER_ADMIN" || decoded.role === "ADMIN") {
+                setCookie("accessToken", result.data.accessToken, 7);
+                setCookie("refreshToken", result.data.refreshToken, 365);
+                toast.success("Login successful!", { id: toastId });
+
+                router.push("/agreement-form");
+                return;
             }
 
-            toast.error(res?.message || "Login failed. Please try again.", {
-                id: toastId,
-            });
-
+            toast.error("You are not an admin", { id: toastId });
             return;
-        } catch (err: any) {
-            console.error("Login Error:", err);
-            if (err?.message === "LIMIT_EXCEEDED") {
-                setShowModal(true);
-            }
+        }
 
-            toast.error(
-                err?.message || "Login failed. Please try again.",
-                { id: toastId }
-            );
+        toast.error(result.message, { id: toastId });
 
-            return;
+        if (result.message === "LIMIT_EXCEEDED") {
+            setShowModal(true);
         }
     };
 
     const onSubmit = async (data: LoginInput) => {
-        await login({
-            email: data.email,
-            password: data.password,
-        });
+        await login(data);
     };
 
     const clearSession = async () => {
