@@ -30,12 +30,11 @@ export async function proxy(request: NextRequest) {
     if (accessToken) {
         try {
             const decoded = await verifyJWT(accessToken);
+            const role = decoded?.data?.role;
 
             if (
                 decoded?.success &&
-                [USER_ROLE.ADMIN, USER_ROLE.SUPER_ADMIN].includes(
-                    decoded?.data?.role
-                )
+                (role === USER_ROLE.ADMIN || role === USER_ROLE.SUPER_ADMIN)
             ) {
                 isAdmin = true;
             }
