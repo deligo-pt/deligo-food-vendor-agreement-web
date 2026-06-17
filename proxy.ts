@@ -1,75 +1,57 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { verifyJWT } from './utils/verifyJwt';
 
+// Define the routes that require a valid accessToken
 const protectedRoutes = [
     '/agreement-form',
     '/verify-otp',
     '/agreement',
 ];
 
+// Define the auth routes (where users go to log in)
 const authRoutes = ['/login'];
 
-export async function proxy(request: NextRequest) {
-    const { nextUrl } = request;
-    const { pathname } = nextUrl;
+export function proxy(request: NextRequest) {
+    const { nextUrl, cookies } = request;
 
-    const accessToken = request.cookies.get('accessToken')?.value;
+    // 1. Retrieve the accessToken from cookies
+    const token = cookies.get('accessToken')?.value;
 
     const isProtectedRoute = protectedRoutes.some((route) =>
-        pathname.startsWith(route)
+        nextUrl.pathname.startsWith(route)
     );
-
     const isAuthRoute = authRoutes.some((route) =>
-        pathname.startsWith(route)
+        nextUrl.pathname.startsWith(route)
     );
 
-    let isAuthenticated = false;
-
-    // VERIFY TOKEN
-    if (accessToken) {
-        try {
-            const decoded = await verifyJWT(accessToken);
-
-            if (decoded?.success) {
-                isAuthenticated = true;
-            }
-        } catch (error) {
-            console.error('JWT verification failed:', error);
-        }
-    }
-
-    /**
-     * PROTECTED ROUTES
-     * Must have a valid token
-     */
-    if (isProtectedRoute && !isAuthenticated) {
+    // 2. If trying to access a protected route without a token, redirect to login
+    if (isProtectedRoute && !token) {
         const loginUrl = new URL('/login', request.url);
-        loginUrl.searchParams.set('callbackUrl', pathname);
-
-        const response = NextResponse.redirect(loginUrl);
-
-        response.cookies.delete('accessToken');
-        response.cookies.delete('refreshToken');
-
-        return response;
+        // Store the original destination to redirect back after login
+        loginUrl.searchParams.set('callbackUrl', nextUrl.pathname);
+        return NextResponse.redirect(loginUrl);
     }
 
-    /**
-     * AUTH ROUTES
-     * Redirect already logged-in users
-     */
-    if (isAuthRoute && isAuthenticated) {
-        return NextResponse.redirect(
-            new URL('/agreement-form', request.url)
-        );
+    // 3. If the user is already logged in and tries to access login/register, 
+    // redirect them to the agreement form (or dashboard)
+    if (isAuthRoute && token) {
+        return NextResponse.redirect(new URL('/agreement-form', request.url));
     }
 
     return NextResponse.next();
 }
 
+// 4. Matcher configuration to optimize middleware performance
 export const config = {
     matcher: [
+        /*
+         * Match all request paths except for the ones starting with:
+         * - api (API routes)
+         * - _next/static (static files)
+         * - _next/image (image optimization files)
+         * - favicon.ico (favicon file)
+         * - public folder files
+         */
         '/((?!api|_next/static|_next/image|favicon.ico|images|public).*)',
     ],
 };
