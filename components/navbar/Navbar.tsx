@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
@@ -17,39 +16,44 @@ export function Navbar() {
     const logOut = async () => {
         const toastId = toast.loading("Logging out...");
 
-        try {
-            const result = await logoutService();
+        const result = await logoutService();
 
-            if (result?.success) {
-                toast.success(result?.message || "Logout successful!", {
-                    id: toastId,
-                });
+        if (result?.success) {
+            toast.success(result?.message || "Logout successful!", {
+                id: toastId,
+            });
 
-                removeCookie("accessToken");
-                removeCookie("refreshToken");
-                router.push("/login");
-                return;
-            }
-
-            toast.error(result?.message || "Logout failed", { id: toastId });
+            removeCookie("accessToken");
+            removeCookie("refreshToken");
+            router.push("/login");
             return;
-
-        } catch (error: any) {
-            console.error("Logout Error:", error);
-
-            if (error?.message === "You have been logged out from this device. Please log in again.") {
-                toast.success("Logout successful!", {
-                    id: toastId,
-                });
-
-                removeCookie("accessToken");
-                removeCookie("refreshToken");
-                router.push("/login");
-                return;
-            }
-            toast.error(error?.message || "An error occurred during logout.", { id: toastId });
         }
+        if (result?.message === "NEXT_REDIRECT") {
+            toast.success("Logout successful!", {
+                id: toastId,
+            });
+
+            removeCookie("accessToken");
+            removeCookie("refreshToken");
+            router.push("/login");
+            return;
+        }
+
+        if (result?.success === false) {
+            toast.success("Logout successful!", {
+                id: toastId,
+            });
+
+            removeCookie("accessToken");
+            removeCookie("refreshToken");
+            router.push("/login");
+            return;
+        }
+
+        toast.error(result?.message || "Logout failed", { id: toastId });
+
     };
+
 
     return (
         <nav className="py-6 px-8 bg-white border-b border-gray-100 shadow-sm">

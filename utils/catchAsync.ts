@@ -1,0 +1,54 @@
+import { TResponse } from "@/types";
+import { isRedirectError } from "next/dist/client/components/redirect-error";
+
+export const catchAsync = async <T>(
+  fn: () => Promise<TResponse<T>>,
+  customSuccessMsg?: string,
+  customErrMsg?: string,
+) => {
+  try {
+    const result = await fn();
+
+    const response = {
+      statusCode: result.statusCode,
+      success: true,
+      data: null,
+      message: result.message || customSuccessMsg,
+      meta: undefined,
+      error: undefined,
+    };
+
+    if (result.success) {
+      return {
+        ...response,
+        data: result.data,
+        meta: result.meta,
+      };
+    }
+
+    console.log(result);
+    return {
+      ...response,
+      success: false,
+      message: result.message,
+      error: result.error,
+    };
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } catch (error: any) {
+    console.log(error);
+
+    if (isRedirectError(error)) {
+      throw error;
+    }
+
+    return {
+      statusCode: error?.response?.status,
+      success: false,
+      data: error?.response?.data || error?.data || null,
+      message: error?.response?.data?.message || error?.message || customErrMsg,
+      error: error?.response?.data?.error,
+      meta: undefined,
+    };
+  }
+};
