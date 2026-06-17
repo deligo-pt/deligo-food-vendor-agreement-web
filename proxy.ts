@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { verifyJWT } from './utils/verifyJwt';
-import { USER_ROLE } from './consts/user.const';
 
 const protectedRoutes = [
     '/agreement-form',
@@ -25,18 +24,15 @@ export async function proxy(request: NextRequest) {
         pathname.startsWith(route)
     );
 
-    let isAdmin = false;
+    let isAuthenticated = false;
 
+    // VERIFY TOKEN
     if (accessToken) {
         try {
             const decoded = await verifyJWT(accessToken);
-            const role = decoded?.data?.role;
 
-            if (
-                decoded?.success &&
-                (role === USER_ROLE.ADMIN || role === USER_ROLE.SUPER_ADMIN)
-            ) {
-                isAdmin = true;
+            if (decoded?.success) {
+                isAuthenticated = true;
             }
         } catch (error) {
             console.error('JWT verification failed:', error);
@@ -44,10 +40,10 @@ export async function proxy(request: NextRequest) {
     }
 
     /**
-     * PROTECT ROUTES
-     * Only ADMIN / SUPER_ADMIN can access
+     * PROTECTED ROUTES
+     * Must have a valid token
      */
-    if (isProtectedRoute && !isAdmin) {
+    if (isProtectedRoute && !isAuthenticated) {
         const loginUrl = new URL('/login', request.url);
         loginUrl.searchParams.set('callbackUrl', pathname);
 
@@ -60,9 +56,10 @@ export async function proxy(request: NextRequest) {
     }
 
     /**
-     * Prevent logged-in admins from seeing login page
+     * AUTH ROUTES
+     * Redirect already logged-in users
      */
-    if (isAuthRoute && isAdmin) {
+    if (isAuthRoute && isAuthenticated) {
         return NextResponse.redirect(
             new URL('/agreement-form', request.url)
         );
